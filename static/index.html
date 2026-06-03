@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hungarian Reading Assistant</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <header>
+        <h1>Hungarian Reading Assistant</h1>
+    </header>
+
+    <main>
+        <section class="input-section">
+            <label for="hungarianInput">Hungarian text:</label>
+            <textarea
+                id="hungarianInput"
+                placeholder="Írjon be magyar szöveget... (Type Hungarian text here)"
+                rows="6"
+            ></textarea>
+            <button id="translateBtn">Translate</button>
+        </section>
+
+        <div id="statusArea" hidden>
+            <span class="spinner" aria-hidden="true"></span>
+            <span>Translating…</span>
+        </div>
+
+        <section id="outputArea" hidden>
+            <label>English translation:</label>
+            <div id="translationText"></div>
+        </section>
+    </main>
+
+    <footer id="modelInfo"></footer>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
