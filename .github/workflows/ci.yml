@@ -1,0 +1,76 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install ruff
+        run: pip install ruff
+
+      - name: Run ruff
+        run: ruff check .
+
+  smoke-test:
+    name: Smoke tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install Python dependencies
+        run: pip install -r requirements.txt
+
+      - name: Install Tesseract + Hungarian language pack
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y tesseract-ocr tesseract-ocr-hun
+
+      - name: Create .env
+        run: |
+          cp .env.example .env
+          # Ollama won't be running in CI — app starts but /translate returns 503.
+          # Smoke test prints warnings; it does not exit non-zero on 503.
+          # Leave TESSERACT_CMD blank so pytesseract picks up the system binary.
+          sed -i 's|^TESSERACT_CMD=.*|TESSERACT_CMD=|' .env
+
+      - name: Start app
+        run: uvicorn main:app --host 127.0.0.1 --port 8000 &
+
+      - name: Wait for app to be healthy
+        run: |
+          for i in $(seq 1 20); do
+            if curl --silent --fail http://localhost:8000/health > /dev/null; then
+              echo "App is up after $i attempt(s)."
+              break
+            fi
+            echo "Waiting for app... ($i/20)"
+            sleep 2
+          done
+          curl --silent --fail http://localhost:8000/health > /dev/null || \
+            { echo "ERROR: App never became healthy."; exit 1; }
+
+      - name: Run smoke tests
+        run: python test_smoke.py
+
+      - name: Check health endpoint (pretty-printed)
+        run: curl -s http://localhost:8000/health | python3 -m json.tool
