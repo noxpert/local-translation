@@ -31,6 +31,59 @@
             <label>English translation:</label>
             <div id="translationText"></div>
         </section>
+
+        <hr class="phase-divider">
+
+        <section id="phase2" aria-label="Translate from image">
+            <h2>Step 2 — Translate from Image</h2>
+
+            <div class="phase2-columns">
+
+                <!-- Left column: image input and preview -->
+                <div class="phase2-left">
+                    <div class="image-input-group">
+                        <!-- Hidden native file input; triggered by the styled button below -->
+                        <input type="file"
+                               id="imageInput"
+                               accept="image/*"
+                               capture="environment"
+                               aria-label="Select image or take photo"
+                               hidden>
+                        <button type="button" id="chooseImageBtn">Choose Image or Take Photo</button>
+                        <span id="imageFilename" class="filename-display"></span>
+                    </div>
+                    <div id="imagePreviewContainer" hidden>
+                        <img id="imagePreview" alt="Selected book page preview">
+                    </div>
+                </div>
+
+                <!-- Right column: extract, review, translate -->
+                <div class="phase2-right">
+                    <button type="button" id="extractBtn" disabled>Extract Text</button>
+                    <div id="ocrStatus" hidden>
+                        <span class="spinner" aria-hidden="true"></span>
+                        <span>Extracting text…</span>
+                    </div>
+                    <div id="confidenceBadge" hidden aria-live="polite"></div>
+                    <div id="ocrWarning" hidden class="warning-message"></div>
+                    <textarea id="extractedText"
+                              placeholder="Extracted Hungarian text will appear here. You may edit it before translating."
+                              aria-label="Extracted Hungarian text — editable"
+                              disabled></textarea>
+                    <button type="button" id="ocrTranslateBtn" disabled>Translate</button>
+                    <div id="ocrStatusTranslate" hidden>
+                        <span class="spinner" aria-hidden="true"></span>
+                        <span>Translating…</span>
+                    </div>
+                    <div id="ocrOutputArea" hidden>
+                        <label>English translation:</label>
+                        <p id="ocrTranslationText"></p>
+                    </div>
+                    <div id="ocrModelInfo" class="model-info"></div>
+                </div>
+
+            </div>
+        </section>
     </main>
 
     <footer id="modelInfo"></footer>

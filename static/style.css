@@ -159,3 +159,246 @@ main {
     font-size: 0.78rem;
     color: #888;
 }
+
+/* ══════════════════════════════════════════════════════════
+   Phase 2 — Image OCR
+   ══════════════════════════════════════════════════════════ */
+
+.phase-divider {
+    margin: 2.5rem 0;
+    border: none;
+    border-top: 1px solid #d8d5cc;
+}
+
+#phase2 h2 {
+    margin: 0 0 1.25rem;
+    font-size: 1.2rem;
+    font-weight: normal;
+    letter-spacing: 0.02em;
+    color: #2c3e50;
+}
+
+.phase2-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    align-items: start;
+}
+
+.phase2-left,
+.phase2-right {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+/* ── Image input controls ── */
+
+.image-input-group {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+#chooseImageBtn {
+    padding: 0.55rem 1.2rem;
+    font-family: system-ui, sans-serif;
+    font-size: 0.95rem;
+    background: #2c3e50;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+#chooseImageBtn:hover {
+    background: #3d5166;
+}
+
+.filename-display {
+    font-family: system-ui, sans-serif;
+    font-size: 0.875rem;
+    color: #777;
+    word-break: break-all;
+}
+
+.filename-display.error {
+    color: #8b2020;
+}
+
+/* ── Image preview ── */
+
+#imagePreviewContainer {
+    max-width: 100%;
+    overflow: hidden;
+}
+
+#imagePreview {
+    max-width: 100%;
+    max-height: 500px;
+    object-fit: contain;
+    display: block;
+    border: 1px solid #c8c5bc;
+    border-radius: 4px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+/* ── Extract / Translate buttons ── */
+
+#extractBtn,
+#ocrTranslateBtn {
+    align-self: flex-start;
+    padding: 0.55rem 1.6rem;
+    font-family: system-ui, sans-serif;
+    font-size: 0.95rem;
+    background: #2c3e50;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.15s, opacity 0.15s;
+}
+
+#extractBtn:hover:not(:disabled),
+#ocrTranslateBtn:hover:not(:disabled) {
+    background: #3d5166;
+}
+
+#extractBtn:disabled,
+#ocrTranslateBtn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+/* ── OCR status indicators ── */
+
+#ocrStatus,
+#ocrStatusTranslate {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-family: system-ui, sans-serif;
+    font-size: 0.9rem;
+    color: #555;
+}
+
+/* ── Confidence badge ── */
+
+#confidenceBadge {
+    display: inline-block;
+    align-self: flex-start;
+    padding: 0.2rem 0.75rem;
+    border-radius: 999px;
+    font-family: system-ui, sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+#confidenceBadge.conf-good {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+#confidenceBadge.conf-fair {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+#confidenceBadge.conf-poor {
+    background-color: #ffe5b4;
+    color: #7a4f00;
+}
+
+#confidenceBadge.conf-low {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+/* ── Warning message ── */
+
+.warning-message {
+    padding: 0.5rem 0.75rem;
+    border-radius: 4px;
+    font-family: system-ui, sans-serif;
+    font-size: 0.875rem;
+    background-color: #ffe5b4;
+    color: #7a4f00;
+}
+
+/* ── Extracted text area ── */
+
+#extractedText {
+    width: 100%;
+    min-height: 200px;
+    padding: 0.75rem 1rem;
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 1rem;
+    line-height: 1.6;
+    border: 1px solid #c8c5bc;
+    border-radius: 4px;
+    background: #fff;
+    color: #1a1a1a;
+    resize: vertical;
+    transition: border-color 0.15s;
+}
+
+#extractedText:focus {
+    outline: none;
+    border-color: #2c3e50;
+    box-shadow: 0 0 0 2px rgba(44, 62, 80, 0.12);
+}
+
+#extractedText:disabled {
+    background: #f0efea;
+    color: #888;
+}
+
+/* ── OCR translation output ── */
+
+#ocrOutputArea {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+#ocrOutputArea label {
+    font-size: 0.85rem;
+    font-family: system-ui, sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #555;
+}
+
+#ocrTranslationText {
+    margin: 0;
+    background: #eef2f7;
+    border: 1px solid #c8d4e3;
+    border-radius: 4px;
+    padding: 0.85rem 1rem;
+    font-size: 1rem;
+    line-height: 1.7;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+#ocrTranslationText.error {
+    background: #fdf0f0;
+    border-color: #e0b0b0;
+    color: #8b2020;
+}
+
+.model-info {
+    font-family: system-ui, sans-serif;
+    font-size: 0.78rem;
+    color: #888;
+}
+
+/* ── Narrow viewports: stack columns ── */
+
+@media (max-width: 768px) {
+    .phase2-columns {
+        grid-template-columns: 1fr;
+    }
+}
