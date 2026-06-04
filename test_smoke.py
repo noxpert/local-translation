@@ -6,7 +6,7 @@ Run while the app is running:
 
 curl equivalents
 ----------------
-Health check:
+Health check (now shows Tesseract status):
     curl http://localhost:8000/health
 
 Translation (short greeting):
@@ -18,6 +18,10 @@ Translation (longer sentence):
     curl -s -X POST http://localhost:8000/translate \
         -H "Content-Type: application/json" \
         -d '{"text": "A macska az asztal alatt alszik."}' | python3 -m json.tool
+
+OCR upload:
+    curl -s -X POST http://localhost:8000/ocr \
+        -F "image=@/path/to/book_page.jpg" | python3 -m json.tool
 
 Common issues
 -------------
@@ -39,6 +43,7 @@ CORS issues (opening index.html from the filesystem):
 """
 
 import json
+import os
 import sys
 
 import httpx
@@ -69,7 +74,7 @@ def check_health(client: httpx.Client) -> None:
 
 
 def check_translation(client: httpx.Client, text: str) -> None:
-    separator(f"POST /translate — "{text}"")
+    separator(f'POST /translate — "{text}"')
     response = client.post(
         f"{BASE_URL}/translate",
         json={"text": text},
@@ -80,17 +85,74 @@ def check_translation(client: httpx.Client, text: str) -> None:
     print(json.dumps(data, indent=2, ensure_ascii=False))
 
 
+def check_ocr_health(client: httpx.Client) -> None:
+    """Report whether Tesseract and the Hungarian language pack are available."""
+    separator("GET /health — Tesseract status")
+    response = client.get(f"{BASE_URL}/health")
+    data = response.json()
+    print(json.dumps(data, indent=2, ensure_ascii=False))
+
+    if not data.get("tesseract_available"):
+        print("\nWARNING: Tesseract is not available. OCR (/ocr) will fail.")
+        print("  Install it with: brew install tesseract")
+    if not data.get("tesseract_hun_lang"):
+        print("\nWARNING: Hungarian language pack ('hun') not found.")
+        print("  Install it with: brew install tesseract-lang")
+        print("  Verify 'hun' appears in: tesseract --list-langs")
+
+
+def check_ocr_upload(client: httpx.Client, image_path: str) -> None:
+    """Upload a local image to /ocr and print the extraction result."""
+    separator(f"POST /ocr — {image_path}")
+
+    if not os.path.isfile(image_path):
+        print(f"ERROR: No such file: {image_path}")
+        return
+
+    filename = os.path.basename(image_path)
+    with open(image_path, "rb") as fh:
+        # OCR can be slow on first run; use a generous timeout.
+        response = client.post(
+            f"{BASE_URL}/ocr",
+            files={"image": (filename, fh, "image/jpeg")},
+            timeout=120.0,
+        )
+
+    data = response.json()
+    print(f"HTTP {response.status_code}")
+
+    if response.status_code == 200:
+        print(f"confidence:       {data.get('confidence')}")
+        print(f"confidence_label: {data.get('confidence_label')}")
+        text = data.get("extracted_text", "")
+        preview = text[:200]
+        suffix = "…" if len(text) > 200 else ""
+        print(f"extracted_text (first 200 chars):\n{preview}{suffix}")
+        if data.get("warning"):
+            print(f"\nwarning: {data['warning']}")
+    else:
+        print(json.dumps(data, indent=2, ensure_ascii=False))
+
+
 def main() -> None:
     print(f"Smoke test against {BASE_URL}")
 
     try:
         with httpx.Client(timeout=10.0) as client:
             check_health(client)
+            check_ocr_health(client)
 
         # Use a longer timeout for translation calls
         with httpx.Client() as client:
             for text in TRANSLATIONS:
                 check_translation(client, text)
+
+            # Optional OCR check when an image path is supplied.
+            if len(sys.argv) > 1:
+                check_ocr_upload(client, sys.argv[1])
+            else:
+                print("\nTip: pass an image path to test OCR, e.g.:")
+                print("  python test_smoke.py /path/to/book_page.jpg")
 
     except httpx.ConnectError:
         print(
