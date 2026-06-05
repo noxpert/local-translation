@@ -59,15 +59,19 @@ jobs:
       - name: Wait for app to be healthy
         run: |
           for i in $(seq 1 20); do
-            if curl --silent --fail http://localhost:8000/health > /dev/null; then
-              echo "App is up after $i attempt(s)."
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/health || true)
+            if [ "$STATUS" = "200" ] || [ "$STATUS" = "503" ]; then
+              echo "App is up (HTTP $STATUS) after $i attempt(s)."
               break
             fi
             echo "Waiting for app... ($i/20)"
             sleep 2
           done
-          curl --silent --fail http://localhost:8000/health > /dev/null || \
-            { echo "ERROR: App never became healthy."; exit 1; }
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/health || true)
+          if [ "$STATUS" != "200" ] && [ "$STATUS" != "503" ]; then
+            echo "ERROR: App never became reachable."
+            exit 1
+          fi
 
       - name: Run smoke tests
         run: python test_smoke.py

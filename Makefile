@@ -52,7 +52,8 @@ run-prod:
 	uvicorn main:app --host $(APP_HOST) --port $(APP_PORT) --workers 2
 
 _check-app-running:
-	@if ! curl --silent --fail $(HEALTH_URL) > /dev/null 2>&1; then \
+	@STATUS=$$(curl -s -o /dev/null -w "%{http_code}" $(HEALTH_URL) 2>/dev/null || echo "000"); \
+	if [ "$$STATUS" != "200" ] && [ "$$STATUS" != "503" ]; then \
 		echo "ERROR: App is not reachable at $(HEALTH_URL)"; \
 		echo "Please run 'make run' in another terminal first."; \
 		exit 1; \

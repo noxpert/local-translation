@@ -278,6 +278,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         ocrTranslateBtn.disabled = true;
         ocrStatusTranslate.hidden = false;
+        ocrOutputArea.hidden = true;
+        ocrTranslationText.textContent = '';
+        ocrModelInfo.textContent = '';
 
         try {
             const response = await fetch('/translate', {

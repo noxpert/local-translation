@@ -8,7 +8,7 @@ from contextlib import asynccontextmanager
 from typing import AsyncIterator
 
 import httpx
-from fastapi import FastAPI, File, UploadFile
+from fastapi import FastAPI, File, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -29,7 +29,9 @@ from translator import TranslationError, translate_hungarian
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-    yield
+    async with httpx.AsyncClient(timeout=5.0) as client:
+        app.state.http_client = client
+        yield
 
 
 app = FastAPI(title="Hungarian Reading Assistant", lifespan=lifespan)
@@ -87,16 +89,14 @@ async def serve_index() -> FileResponse:
     return FileResponse("static/index.html")
 
 
-@app.post("/translate")
-async def translate(request: TranslationRequest) -> JSONResponse:
+@app.post("/translate", response_model=TranslationResponse)
+async def translate(request: TranslationRequest):
     try:
         translation = await translate_hungarian(request.text)
-        return JSONResponse(
-            content=TranslationResponse(
-                translation=translation,
-                model=OLLAMA_MODEL,
-                source_text=request.text,
-            ).model_dump()
+        return TranslationResponse(
+            translation=translation,
+            model=OLLAMA_MODEL,
+            source_text=request.text,
         )
     except TranslationError as exc:
         return JSONResponse(
@@ -115,13 +115,13 @@ async def translate(request: TranslationRequest) -> JSONResponse:
 _ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/webp", "image/heic"}
 
 
-@app.post("/ocr")
-async def ocr_image(image: UploadFile = File(...)) -> JSONResponse:
-    if image.content_type not in _ALLOWED_IMAGE_TYPES:
+@app.post("/ocr", response_model=OCRResponse)
+async def ocr_image(image: UploadFile = File(...)):
+    if not image.content_type or image.content_type not in _ALLOWED_IMAGE_TYPES:
         return JSONResponse(
             status_code=422,
             content=ErrorResponse(
-                error="Unsupported file type. Use JPEG, PNG, WEBP, or HEIC."
+                error="Unsupported or missing file type. Use JPEG, PNG, WEBP, or HEIC."
             ).model_dump(),
         )
 
@@ -143,13 +143,11 @@ async def ocr_image(image: UploadFile = File(...)) -> JSONResponse:
             if label == "Low — review carefully"
             else None
         )
-        return JSONResponse(
-            content=OCRResponse(
-                extracted_text=text,
-                confidence=confidence,
-                confidence_label=label,
-                warning=warning,
-            ).model_dump()
+        return OCRResponse(
+            extracted_text=text,
+            confidence=confidence,
+            confidence_label=label,
+            warning=warning,
         )
     except OCRError as exc:
         return JSONResponse(
@@ -164,11 +162,10 @@ async def ocr_image(image: UploadFile = File(...)) -> JSONResponse:
 
 
 @app.get("/health")
-async def health() -> JSONResponse:
+async def health(request: Request) -> JSONResponse:
     tess = tesseract_status()
     try:
-        async with httpx.AsyncClient(timeout=5.0) as client:
-            await client.get(f"{OLLAMA_BASE_URL}/api/tags")
+        await request.app.state.http_client.get(f"{OLLAMA_BASE_URL}/api/tags")
         return JSONResponse(
             content={
                 "status": "ok",
@@ -180,11 +177,12 @@ async def health() -> JSONResponse:
         )
     except Exception:
         return JSONResponse(
+            status_code=503,
             content={
                 "status": "degraded",
                 "ollama_reachable": False,
                 "model": OLLAMA_MODEL,
                 "tesseract_available": tess["available"],
                 "tesseract_hun_lang": tess["hun_lang"],
-            }
+            },
         )

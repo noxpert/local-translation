@@ -56,10 +56,8 @@ async def extract_text(image_bytes: bytes) -> tuple[str, float]:
 
         loop = asyncio.get_running_loop()
 
-        text: str = await loop.run_in_executor(
-            None,
-            functools.partial(pytesseract.image_to_string, image, lang="hun"),
-        )
+        # Single Tesseract pass: image_to_data gives both per-word text and
+        # confidence scores, so a separate image_to_string call is redundant.
         data: dict = await loop.run_in_executor(
             None,
             functools.partial(
@@ -82,16 +80,30 @@ async def extract_text(image_bytes: bytes) -> tuple[str, float]:
             else -1.0
         )
 
-        text = text.strip()
+        # Reconstruct text preserving line/block structure.
+        line_words: dict = {}
+        for i, word in enumerate(data["text"]):
+            if not isinstance(data["conf"][i], (int, float)) or data["conf"][i] == -1:
+                continue
+            if not word.strip():
+                continue
+            key = (data["block_num"][i], data["par_num"][i], data["line_num"][i])
+            line_words.setdefault(key, []).append(word)
+
+        prev_block: int | None = None
+        text_parts: list[str] = []
+        for (block, _par, _line), words in sorted(line_words.items()):
+            if prev_block is not None and block != prev_block:
+                text_parts.append("")
+            text_parts.append(" ".join(words))
+            prev_block = block
+
+        text = "\n".join(text_parts).strip()
         text = re.sub(r"\n{3,}", "\n\n", text)
 
         return text, confidence
 
-    except pytesseract.pytesseract.TesseractNotFoundError as exc:
-        raise OCRError(
-            "Tesseract is not installed or not on PATH. Run: brew install tesseract"
-        ) from exc
-    except FileNotFoundError as exc:
+    except (pytesseract.pytesseract.TesseractNotFoundError, FileNotFoundError) as exc:
         raise OCRError(
             "Tesseract is not installed or not on PATH. Run: brew install tesseract"
         ) from exc
