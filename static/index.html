@@ -9,9 +9,14 @@
 <body>
     <header>
         <h1>Hungarian Reading Assistant</h1>
+        <p id="modeSubtitle" class="mode-subtitle">Mode: Typed Text</p>
+        <button type="button" id="modeToggleBtn" class="btn-secondary">
+            Switch to Image Translation
+        </button>
     </header>
 
     <main>
+        <section id="phase1">
         <section class="input-section">
             <label for="hungarianInput">Hungarian text:</label>
             <textarea
@@ -32,9 +37,11 @@
             <div id="translationText"></div>
         </section>
 
-        <hr class="phase-divider">
+        </section><!-- #phase1 -->
 
-        <section id="phase2" aria-label="Translate from image">
+        <hr class="phase-divider hidden">
+
+        <section id="phase2" class="hidden" aria-label="Translate from image">
             <h2>Step 2 — Translate from Image</h2>
 
             <div class="phase2-columns">

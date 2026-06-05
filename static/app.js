@@ -1,6 +1,42 @@
 'use strict';
 
 document.addEventListener('DOMContentLoaded', () => {
+
+    /* ══════════════════════════════════════════════════════════
+       Mode toggle
+       ══════════════════════════════════════════════════════════ */
+
+    const modeToggleBtn = document.getElementById('modeToggleBtn');
+    const modeSubtitle  = document.getElementById('modeSubtitle');
+    const phase1Section = document.getElementById('phase1');
+    const phase2Section = document.getElementById('phase2');
+    const phaseDivider  = document.querySelector('hr.phase-divider');
+
+    let currentMode = 'phase1';
+
+    function switchMode() {
+        if (currentMode === 'phase1') {
+            phase1Section.classList.add('hidden');
+            phase2Section.classList.remove('hidden');
+            modeToggleBtn.textContent = 'Switch to Typed Translation';
+            modeSubtitle.textContent  = 'Mode: Image OCR';
+            currentMode = 'phase2';
+        } else {
+            phase2Section.classList.add('hidden');
+            phase1Section.classList.remove('hidden');
+            modeToggleBtn.textContent = 'Switch to Image Translation';
+            modeSubtitle.textContent  = 'Mode: Typed Text';
+            currentMode = 'phase1';
+        }
+        if (phaseDivider) phaseDivider.classList.add('hidden');
+    }
+
+    modeToggleBtn.addEventListener('click', switchMode);
+
+    /* ══════════════════════════════════════════════════════════
+       Phase 1 — Typed text translation
+       ══════════════════════════════════════════════════════════ */
+
     const input      = document.getElementById('hungarianInput');
     const btn        = document.getElementById('translateBtn');
     const statusArea = document.getElementById('statusArea');
