@@ -125,13 +125,17 @@ main {
 /* ── Status / spinner ── */
 
 #statusArea {
-    display: flex;
+    display: none;
     align-items: center;
     gap: 0.6rem;
     margin-top: 1rem;
     font-family: system-ui, sans-serif;
     font-size: 0.9rem;
     color: #555;
+}
+
+#statusArea:not([hidden]) {
+    display: flex;
 }
 
 .spinner {
@@ -308,12 +312,17 @@ main {
 
 #ocrStatus,
 #ocrStatusTranslate {
-    display: flex;
+    display: none;
     align-items: center;
     gap: 0.6rem;
     font-family: system-ui, sans-serif;
     font-size: 0.9rem;
     color: #555;
+}
+
+#ocrStatus:not([hidden]),
+#ocrStatusTranslate:not([hidden]) {
+    display: flex;
 }
 
 /* ── Confidence badge ── */
