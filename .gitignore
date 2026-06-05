@@ -31,3 +31,5 @@ htmlcov/
 
 # macOS
 .DS_Store
+/.junie/
+/ai-docs/
