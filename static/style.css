@@ -58,9 +58,14 @@ header h1 {
 }
 
 main {
-    max-width: 760px;
+    max-width: 1400px;
     margin: 2rem auto;
     padding: 0 1.5rem;
+}
+
+/* Cap Phase 1 (typed text) so it doesn't stretch uncomfortably wide. */
+#phase1 {
+    max-width: 760px;
 }
 
 /* ── Input section ── */
@@ -438,7 +443,7 @@ main {
 
 /* ── Narrow viewports: stack columns ── */
 
-@media (max-width: 768px) {
+@media (max-width: 900px) {
     .phase2-columns {
         grid-template-columns: 1fr;
     }
