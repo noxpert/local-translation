@@ -15,6 +15,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from config import (
+    APP_DEFAULT_MODE,
     MAX_IMAGE_BYTES,
     MAX_INPUT_CHARS,
     OCR_CONF_HIGH,
@@ -87,6 +88,11 @@ def _confidence_label(score: float) -> str:
 @app.get("/")
 async def serve_index() -> FileResponse:
     return FileResponse("static/index.html")
+
+
+@app.get("/config")
+async def frontend_config() -> JSONResponse:
+    return JSONResponse(content={"default_mode": APP_DEFAULT_MODE})
 
 
 @app.post("/translate", response_model=TranslationResponse)
