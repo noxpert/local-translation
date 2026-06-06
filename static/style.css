@@ -161,10 +161,14 @@ main {
 /* ── Output section ── */
 
 #outputArea {
-    margin-top: 1.5rem;
-    display: flex;
+    display: none;
     flex-direction: column;
     gap: 0.5rem;
+    margin-top: 1.5rem;
+}
+
+#outputArea:not([hidden]) {
+    display: flex;
 }
 
 #outputArea label {
@@ -501,9 +505,13 @@ main {
 /* ── OCR translation output ── */
 
 #ocrOutputArea {
-    display: flex;
+    display: none;
     flex-direction: column;
     gap: 0.5rem;
+}
+
+#ocrOutputArea:not([hidden]) {
+    display: flex;
 }
 
 #ocrOutputArea label {

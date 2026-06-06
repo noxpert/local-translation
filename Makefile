@@ -1,5 +1,6 @@
 .PHONY: help install run run-prod test test-ocr health check-tesseract lint format clean env-check \
-        docker-build docker-run docker-stop docker-logs docker-health
+        docker-build docker-run docker-stop docker-logs docker-health \
+        test-unit test-e2e install-dev install-playwright
 
 .DEFAULT_GOAL := help
 
@@ -15,7 +16,7 @@ help:
 	@echo "  make install          Install Python dependencies (pip) and remind about Tesseract"
 	@echo "  make run              Start the dev server with --reload (checks for .env first)"
 	@echo "  make run-prod         Start the production server (2 workers, no --reload)"
-	@echo "  make test             Run smoke tests (app must already be running)"
+	@echo "  make test             Run unit tests then E2E tests (no running app needed)"
 	@echo "  make test-ocr         Run OCR smoke test: make test-ocr IMAGE=/path/to/file.jpg"
 	@echo "  make health           Hit /health and pretty-print the JSON response"
 	@echo "  make check-tesseract  Show Tesseract version and installed languages"
@@ -23,6 +24,12 @@ help:
 	@echo "  make format           Format with ruff format (falls back to black)"
 	@echo "  make clean            Remove __pycache__, .pyc, and cache directories"
 	@echo "  make env-check        Verify required .env variables are set"
+	@echo ""
+	@echo "  Testing:"
+	@echo "  make install-dev      Install development/test dependencies"
+	@echo "  make install-playwright  Install Playwright + Chromium browser"
+	@echo "  make test-unit        Run API unit tests (no browser, no Ollama needed)"
+	@echo "  make test-e2e         Run Playwright E2E tests (no Ollama needed)"
 	@echo ""
 	@echo "  Docker (Option A — app + Tesseract in container, Ollama native):"
 	@echo "  make docker-build     Build the Docker image"
@@ -68,9 +75,7 @@ _check-app-running:
 		exit 1; \
 	fi
 
-test: _check-app-running
-	@echo ">>> Running smoke tests..."
-	python test_smoke.py
+test: test-unit test-e2e
 
 test-ocr: _check-app-running
 	@echo ">>> Running OCR smoke test..."
@@ -131,6 +136,23 @@ clean:
 	find . -type f -name '*.pyo' -delete 2>/dev/null; true
 	rm -rf .pytest_cache .ruff_cache
 	@echo "Done."
+
+install-dev:
+	@echo ">>> Installing development dependencies..."
+	pip install -r requirements-dev.txt
+
+install-playwright:
+	@echo ">>> Installing Playwright + Chromium..."
+	playwright install chromium --with-deps
+
+test-unit:
+	@echo ">>> Running API unit tests..."
+	pytest tests/test_api.py -v
+
+test-e2e:
+	@echo ">>> Running Playwright E2E tests..."
+	pytest tests/e2e/ -v
+
 
 docker-build:
 	@echo ">>> Building Docker image..."
