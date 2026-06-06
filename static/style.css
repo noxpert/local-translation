@@ -12,6 +12,14 @@ body {
     padding: 0;
 }
 
+/* ── Utility ── */
+
+.hidden {
+    display: none !important;
+}
+
+/* ── Header ── */
+
 header {
     background: #2c3e50;
     color: #ecf0f1;
@@ -25,10 +33,39 @@ header h1 {
     letter-spacing: 0.02em;
 }
 
+.mode-subtitle {
+    margin: 0.25rem 0 0.75rem;
+    font-family: system-ui, sans-serif;
+    font-size: 0.875rem;
+    color: rgba(236, 240, 241, 0.65);
+}
+
+.btn-secondary {
+    padding: 0.45rem 1.2rem;
+    font-family: system-ui, sans-serif;
+    font-size: 0.875rem;
+    background: transparent;
+    color: #ecf0f1;
+    border: 1px solid rgba(236, 240, 241, 0.55);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.btn-secondary:hover {
+    background: rgba(236, 240, 241, 0.12);
+    border-color: #ecf0f1;
+}
+
 main {
-    max-width: 760px;
+    max-width: 1400px;
     margin: 2rem auto;
     padding: 0 1.5rem;
+}
+
+/* Cap Phase 1 (typed text) so it doesn't stretch uncomfortably wide. */
+#phase1 {
+    max-width: 760px;
 }
 
 /* ── Input section ── */
@@ -93,13 +130,17 @@ main {
 /* ── Status / spinner ── */
 
 #statusArea {
-    display: flex;
+    display: none;
     align-items: center;
     gap: 0.6rem;
     margin-top: 1rem;
     font-family: system-ui, sans-serif;
     font-size: 0.9rem;
     color: #555;
+}
+
+#statusArea:not([hidden]) {
+    display: flex;
 }
 
 .spinner {
@@ -120,10 +161,14 @@ main {
 /* ── Output section ── */
 
 #outputArea {
-    margin-top: 1.5rem;
-    display: flex;
+    display: none;
     flex-direction: column;
     gap: 0.5rem;
+    margin-top: 1.5rem;
+}
+
+#outputArea:not([hidden]) {
+    display: flex;
 }
 
 #outputArea label {
@@ -201,7 +246,8 @@ main {
     flex-wrap: wrap;
 }
 
-#chooseImageBtn {
+#chooseImageBtn,
+#webcamBtn {
     padding: 0.55rem 1.2rem;
     font-family: system-ui, sans-serif;
     font-size: 0.95rem;
@@ -213,7 +259,8 @@ main {
     transition: background 0.15s;
 }
 
-#chooseImageBtn:hover {
+#chooseImageBtn:hover,
+#webcamBtn:hover {
     background: #3d5166;
 }
 
@@ -228,21 +275,116 @@ main {
     color: #8b2020;
 }
 
-/* ── Image preview ── */
+/* ── Webcam ── */
+
+#webcamSection {
+    display: none;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+#webcamSection:not([hidden]) {
+    display: flex;
+}
+
+#webcamVideo {
+    width: 100%;
+    max-height: 420px;
+    background: #000;
+    border-radius: 4px;
+    display: block;
+}
+
+.webcam-controls {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.webcam-controls button {
+    padding: 0.45rem 1.1rem;
+    font-family: system-ui, sans-serif;
+    font-size: 0.9rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+}
+
+#captureBtn {
+    background: #2c3e50;
+    color: #fff;
+    border: 1px solid #2c3e50;
+}
+
+#captureBtn:hover {
+    background: #3d5166;
+}
+
+#closeWebcamBtn {
+    background: #fff;
+    color: #2c3e50;
+    border: 1px solid #c8c5bc;
+}
+
+#closeWebcamBtn:hover {
+    background: #f0efea;
+    border-color: #2c3e50;
+}
+
+/* ── Image preview / edit canvas ── */
 
 #imagePreviewContainer {
     max-width: 100%;
-    overflow: hidden;
 }
 
-#imagePreview {
+#editCanvas {
     max-width: 100%;
-    max-height: 500px;
-    object-fit: contain;
+    max-height: 520px;
     display: block;
     border: 1px solid #c8c5bc;
     border-radius: 4px;
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+/* ── Image edit toolbar ── */
+
+#imageEditToolbar {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.5rem;
+}
+
+#imageEditToolbar button {
+    padding: 0.35rem 0.85rem;
+    font-family: system-ui, sans-serif;
+    font-size: 0.85rem;
+    background: #fff;
+    color: #2c3e50;
+    border: 1px solid #c8c5bc;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+}
+
+#imageEditToolbar button:hover:not(:disabled) {
+    background: #f0efea;
+    border-color: #2c3e50;
+}
+
+#imageEditToolbar button:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+#imageEditToolbar .btn-confirm {
+    background: #2c3e50;
+    color: #fff;
+    border-color: #2c3e50;
+}
+
+#imageEditToolbar .btn-confirm:hover {
+    background: #3d5166;
+    border-color: #3d5166;
 }
 
 /* ── Extract / Translate buttons ── */
@@ -276,12 +418,17 @@ main {
 
 #ocrStatus,
 #ocrStatusTranslate {
-    display: flex;
+    display: none;
     align-items: center;
     gap: 0.6rem;
     font-family: system-ui, sans-serif;
     font-size: 0.9rem;
     color: #555;
+}
+
+#ocrStatus:not([hidden]),
+#ocrStatusTranslate:not([hidden]) {
+    display: flex;
 }
 
 /* ── Confidence badge ── */
@@ -358,9 +505,13 @@ main {
 /* ── OCR translation output ── */
 
 #ocrOutputArea {
-    display: flex;
+    display: none;
     flex-direction: column;
     gap: 0.5rem;
+}
+
+#ocrOutputArea:not([hidden]) {
+    display: flex;
 }
 
 #ocrOutputArea label {
@@ -397,7 +548,7 @@ main {
 
 /* ── Narrow viewports: stack columns ── */
 
-@media (max-width: 768px) {
+@media (max-width: 900px) {
     .phase2-columns {
         grid-template-columns: 1fr;
     }

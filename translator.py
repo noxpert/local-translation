@@ -19,8 +19,8 @@ async def translate_hungarian(text: str) -> str:
         English translation string.
 
     Raises:
-        TranslationError: If Ollama is unreachable, returns a non-200 status,
-            or the requested model is not found.
+        TranslationError: If Ollama is unreachable, times out, returns a
+            non-200 status, or the requested model is not found.
     """
     prompt = (
         "You are a professional Hungarian (hu) to English (en) translator.\n"
@@ -36,20 +36,24 @@ async def translate_hungarian(text: str) -> str:
     try:
         async with httpx.AsyncClient(timeout=_TIMEOUT) as client:
             response = await client.post(f"{OLLAMA_BASE_URL}/api/chat", json=payload)
-    except httpx.ConnectError as exc:
+    except (httpx.ConnectError, httpx.TimeoutException) as exc:
         raise TranslationError(
-            f"Ollama is not reachable at {OLLAMA_BASE_URL}"
+            f"Ollama is not reachable or timed out at {OLLAMA_BASE_URL}"
         ) from exc
 
     if response.status_code != 200:
-        body = response.text
-        if "model" in body.lower():
+        if response.status_code == 404:
             raise TranslationError(
                 f"Model '{OLLAMA_MODEL}' not found. Run: ollama pull {OLLAMA_MODEL}"
             )
         raise TranslationError(
-            f"Ollama returned HTTP {response.status_code}: {body}"
+            f"Ollama returned HTTP {response.status_code}: {response.text}"
         )
 
     data: dict = response.json()
-    return data["message"]["content"]
+    try:
+        return data["message"]["content"]
+    except (KeyError, TypeError) as exc:
+        raise TranslationError(
+            f"Unexpected response format from Ollama: {data}"
+        ) from exc

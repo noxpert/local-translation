@@ -1,0 +1,83 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+
+  # ── Lint ────────────────────────────────────────────────────────────────────
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install ruff
+        run: pip install ruff
+      - name: Run ruff
+        run: ruff check .
+
+  # ── API / unit tests ────────────────────────────────────────────────────────
+  unit-tests:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install app + dev dependencies
+        run: pip install -r requirements.txt -r requirements-dev.txt
+
+      - name: Install Tesseract + Hungarian language pack
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y tesseract-ocr tesseract-ocr-hun
+
+      - name: Create .env
+        run: |
+          cp .env.example .env
+          sed -i 's|^TESSERACT_CMD=.*|TESSERACT_CMD=|' .env
+
+      - name: Run unit tests
+        run: make test-unit
+
+  # ── Playwright E2E tests ────────────────────────────────────────────────────
+  e2e-tests:
+    name: E2E tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install app + dev dependencies
+        run: pip install -r requirements.txt -r requirements-dev.txt
+
+      - name: Install Tesseract + Hungarian language pack
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y tesseract-ocr tesseract-ocr-hun
+
+      - name: Install Playwright + Chromium
+        run: make install-playwright
+
+      - name: Create .env
+        run: |
+          cp .env.example .env
+          sed -i 's|^TESSERACT_CMD=.*|TESSERACT_CMD=|' .env
+
+      - name: Run E2E tests
+        run: make test-e2e
