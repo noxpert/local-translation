@@ -1,4 +1,5 @@
-.PHONY: help install run run-prod test test-ocr health check-tesseract lint format clean env-check
+.PHONY: help install run run-prod test test-ocr health check-tesseract lint format clean env-check \
+        docker-build docker-run docker-stop docker-logs docker-health
 
 .DEFAULT_GOAL := help
 
@@ -10,6 +11,7 @@ help:
 	@echo ""
 	@echo "Hungarian Reading Assistant — available targets:"
 	@echo ""
+	@echo "  Native development:"
 	@echo "  make install          Install Python dependencies (pip) and remind about Tesseract"
 	@echo "  make run              Start the dev server with --reload (checks for .env first)"
 	@echo "  make run-prod         Start the production server (2 workers, no --reload)"
@@ -21,6 +23,13 @@ help:
 	@echo "  make format           Format with ruff format (falls back to black)"
 	@echo "  make clean            Remove __pycache__, .pyc, and cache directories"
 	@echo "  make env-check        Verify required .env variables are set"
+	@echo ""
+	@echo "  Docker (Option A — app + Tesseract in container, Ollama native):"
+	@echo "  make docker-build     Build the Docker image"
+	@echo "  make docker-run       Start the container in the background"
+	@echo "  make docker-stop      Stop and remove the container"
+	@echo "  make docker-logs      Tail app container logs"
+	@echo "  make docker-health    Hit /health on the running container"
 	@echo ""
 
 install:
@@ -122,6 +131,32 @@ clean:
 	find . -type f -name '*.pyo' -delete 2>/dev/null; true
 	rm -rf .pytest_cache .ruff_cache
 	@echo "Done."
+
+docker-build:
+	@echo ">>> Building Docker image..."
+	docker compose build
+
+docker-run:
+	@echo ">>> Starting container (detached)..."
+	@if [ ! -f .env ]; then \
+		echo "ERROR: .env file not found."; \
+		echo "Please run: cp .env.example .env"; \
+		exit 1; \
+	fi
+	docker compose up -d
+	@echo "App will be available at http://localhost:$(APP_PORT)"
+
+docker-stop:
+	@echo ">>> Stopping container..."
+	docker compose down
+
+docker-logs:
+	@echo ">>> Tailing app logs (Ctrl+C to exit)..."
+	docker compose logs -f app
+
+docker-health:
+	@echo ">>> Checking containerised app health..."
+	curl -s $(HEALTH_URL) | python3 -m json.tool
 
 env-check:
 	@echo ">>> Checking .env variables..."

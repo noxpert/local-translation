@@ -1,0 +1,22 @@
+services:
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      # Reach native Ollama on the macOS host via Docker Desktop's built-in
+      # hostname. Override in .env to point elsewhere if needed.
+      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      # Tesseract is on PATH inside the container — leave the cmd blank.
+      - TESSERACT_CMD=
+      # Must bind to all interfaces inside a container.
+      - APP_HOST=0.0.0.0
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s

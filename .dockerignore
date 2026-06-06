@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.ruff_cache/
+.pytest_cache/
+
+# Environment — never bake secrets into the image
+.env
+
+# Development / repo artefacts
+.git/
+.github/
+ai-docs/
+*.md
+!requirements.txt
+
+# macOS
+.DS_Store
